@@ -1,0 +1,36 @@
+{
+  "name": "geopackage",
+  "version": "0.1.0",
+  "description": "GeoPackage NodeJS binding",
+  "main": "index.js",
+  "types": "index.d.js",
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "utils",
+    "schema"
+  ],
+  "scripts": {
+    "prepublish": "npm run lint && npm run types && npm run test",
+    "types": "tsc index.d.ts --lib es6",
+    "test": "node test.js",
+    "lint": "standard",
+    "docs": "documentation readme index.js --shallow --section=API --markdown-toc"
+  },
+  "author": "Denis Carriere <@DenisCarriere>",
+  "license": "MIT",
+  "keywords": [
+    "geopackage",
+    "gpkg",
+    "sqlite3"
+  ],
+  "dependencies": {
+    "sqlite3-offline": "^3.1.18"
+  },
+  "devDependencies": {
+    "documentation": "^4.0.0-beta.18",
+    "fs-extra": "^3.0.1",
+    "standard": "^10.0.2",
+    "tape": "^4.6.3"
+  }
+}
