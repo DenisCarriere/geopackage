@@ -26,7 +26,11 @@ gpkg.tables()
 
 | Name              | Description      |
 | ----------------- | :--------------- |
-| [tables](#tables) | Build SQL Tables |
+| [update](#update)         | Update Metadata                                  |
+| [save](#save)             | Save buffer data to individual Tile              |
+| [delete](#delete)         | Delete individual Tile                           |
+| [tables](#tables)         | Build SQL Tables                                 |
+| [findOne](#findone)       | Finds one Tile and returns buffer                |
 
 ## NodeJS Support
 

@@ -1,4 +1,4 @@
-CREATE TABLE gpkg_tile_matrix (
+CREATE TABLE IF NOT EXISTS gpkg_tile_matrix (
   table_name TEXT NOT NULL,
   zoom_level INTEGER NOT NULL,
   matrix_width INTEGER NOT NULL,

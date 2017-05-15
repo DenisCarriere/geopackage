@@ -1,4 +1,4 @@
-CREATE TABLE gpkg_tile_matrix_set (
+CREATE TABLE IF NOT EXISTS gpkg_tile_matrix_set (
   table_name TEXT NOT NULL PRIMARY KEY,
   srs_id INTEGER NOT NULL,
   min_x DOUBLE NOT NULL,

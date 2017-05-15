@@ -1,9 +1,9 @@
-CREATE TABLE gpkg_contents (
+CREATE TABLE IF NOT EXISTS gpkg_contents (
   table_name TEXT NOT NULL PRIMARY KEY,
   data_type TEXT NOT NULL,
   identifier TEXT UNIQUE,
   description TEXT DEFAULT '',
-  last_change DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')),
+  last_change DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   min_x DOUBLE,
   min_y DOUBLE,
   max_x DOUBLE,
