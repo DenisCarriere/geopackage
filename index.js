@@ -45,19 +45,13 @@ module.exports = class GeoPackage {
    * Update Metadata
    *
    * @param {Metadata} [metadata={}] Metadata according to MBTiles spec 1.1.0
-   * @param {string} metadata.name Name
    * @param {string} metadata.description Description
-   * @param {BBox} metadata.bounds BBox [west, south, east, north] or Polygon GeoJSON
-   * @param {number} metadata.minzoom Minimum zoom level
    * @param {number} metadata.maxzoom Maximum zoom level
    * @returns {Promise<Metadata>} Metadata
    * @example
    * const metadata = {
-   *   name: 'Foo',
-   *   description: 'Bar',
-   *   minzoom: 1,
-   *   maxzoom: 3,
-   *   bounds: [-110, -40, 95, 50]
+   *   description: 'Example Description',
+   *   maxzoom: 3
    * }
    * gpkg.update(metadata)
    *   .then(metadata => console.log(metadata))
@@ -68,10 +62,8 @@ module.exports = class GeoPackage {
     // Metadata
     const name = metadata.name || 'tiles'
     const description = metadata.description || 'OGC GeoPackage'
-    const bounds = metadata.bounds || [-180, -85, 180, 85]
-    const boundsMeters = mercator.bboxToMeters(bounds)
+    const boundsMeters = [-20037508.34, -20037508.34, 20037508.34, 20037508.34]
     const lastChange = moment().toISOString()
-    const minzoom = metadata.minzoom || 0
     const maxzoom = metadata.maxzoom || 19
 
     // Spatial Reference System
@@ -90,7 +82,7 @@ module.exports = class GeoPackage {
     // Tile Matrix
     await runSQL(this.db, 'DELETE FROM gpkg_tile_matrix')
     const stmt3 = this.db.prepare('INSERT INTO gpkg_tile_matrix VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    const zooms = mercator.range(minzoom, maxzoom + 1)
+    const zooms = mercator.range(0, maxzoom + 1)
     for (const index in zooms) {
       const zoom = zooms[index]
       const matrix = Math.pow(2, index)
@@ -105,10 +97,8 @@ module.exports = class GeoPackage {
     return {
       name,
       description,
-      bounds,
       boundsMeters,
       lastChange,
-      minzoom,
       maxzoom
     }
   }

@@ -2,11 +2,8 @@ type Tile = [number, number, number]
 type BBox = [number, number, number, number]
 
 interface Metadata {
-  name: string
   description: string
-  minzoom: number
   maxzoom: number
-  bounds: BBox
 }
 
 declare class GeoPackage {

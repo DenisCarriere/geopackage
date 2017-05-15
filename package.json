@@ -1,6 +1,6 @@
 {
   "name": "geopackage",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "GeoPackage NodeJS binding",
   "main": "index.js",
   "types": "index.d.js",

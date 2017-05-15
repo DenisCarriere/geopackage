@@ -82,21 +82,15 @@ Update Metadata
 **Parameters**
 
 -   `metadata` **Metadata** Metadata according to MBTiles spec 1.1.0 (optional, default `{}`)
-    -   `metadata.name` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Name
     -   `metadata.description` **[string](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String)** Description
-    -   `metadata.bounds` **BBox** BBox [west, south, east, north] or Polygon GeoJSON
-    -   `metadata.minzoom` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Minimum zoom level
     -   `metadata.maxzoom` **[number](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number)** Maximum zoom level
 
 **Examples**
 
 ```javascript
 const metadata = {
-  name: 'Foo',
-  description: 'Bar',
-  minzoom: 1,
-  maxzoom: 3,
-  bounds: [-110, -40, 95, 50]
+  description: 'Example Description',
+  maxzoom: 3
 }
 gpkg.update(metadata)
   .then(metadata => console.log(metadata))
