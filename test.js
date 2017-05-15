@@ -4,6 +4,7 @@ const fs = require('fs-extra')
 const GeoPackage = require('./')
 
 const directory = path.join(__dirname, 'test') + path.sep
+const image = fs.readFileSync(path.join(directory, 'images', '0', '0', '0.png'))
 
 test('tables', async t => {
   const gpkg = new GeoPackage(directory + 'tables.gpkg')
@@ -39,5 +40,22 @@ test('save', async t => {
   }
   fs.remove(directory + 'tiles.gpkg')
   t.true(true)
+  t.end()
+})
+
+test('findOne', async t => {
+  const gpkg = new GeoPackage(directory + 'findOne.gpkg')
+  await gpkg.save([0, 0, 0], image)
+  t.assert(await gpkg.findOne([0, 0, 0]))
+  fs.remove(directory + 'findOne.gpkg')
+  t.end()
+})
+
+test('delete', async t => {
+  const gpkg = new GeoPackage(directory + 'delete.gpkg')
+  await gpkg.save([0, 0, 0], image)
+  await gpkg.delete([0, 0, 0])
+  t.true(await gpkg.findOne([0, 0, 0]) === undefined)
+  fs.remove(directory + 'delete.gpkg')
   t.end()
 })

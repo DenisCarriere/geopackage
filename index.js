@@ -6,17 +6,14 @@ const projections = require('./projections')
 
 /**
  * GeoPackage
+ *
+ * @param {string} uri Path to GeoPacakge
+ * @returns {GeoPackage} GeoPackage
+ * @example
+ * const gpkg = new GeoPackage('example.gpkg')
+ * //=gpkg
  */
 module.exports = class GeoPackage {
-  /**
-   * GeoPackage
-   *
-   * @param {string} uri Path to GeoPacakge
-   * @returns {GeoPackage} GeoPackage
-   * @example
-   * const gpkg = new GeoPackage('example.gpkg')
-   * //=gpkg
-   */
   constructor (uri) {
     this.db = new sqlite3.Database(uri)
     this.uri = uri
@@ -159,10 +156,9 @@ module.exports = class GeoPackage {
    */
   async findOne (tile) {
     if (!this._table) await this.tables()
-    const row = await getSQL('SELECT tile_data FROM tiles WHERE tile_column=? AND tile_row=? AND zoom_level=?', tile)
+    const row = await getSQL(this.db, 'SELECT tile_data FROM tiles WHERE tile_column=? AND tile_row=? AND zoom_level=?', tile)
     if (row) return row.tile_data
   }
-
 }
 
 /**
@@ -177,10 +173,7 @@ module.exports = class GeoPackage {
 function getSQL (db, sql, data) {
   return new Promise((resolve, reject) => {
     db.get(sql, data, (error, row) => {
-      if (error) {
-        console.warn(error)
-        return resolve(undefined)
-      }
+      if (error) console.warn(error)
       return resolve(row)
     })
   })
@@ -198,10 +191,7 @@ function getSQL (db, sql, data) {
 function runSQL (db, sql, data) {
   return new Promise((resolve, reject) => {
     db.run(sql, data, error => {
-      if (error) {
-        console.warn(error)
-        resolve(false)
-      }
+      if (error) console.warn(error)
       return resolve(true)
     })
   })

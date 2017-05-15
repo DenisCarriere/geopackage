@@ -14,6 +14,8 @@ declare class GeoPackage {
   tables(): Promise<boolean>
   update(metadata: Metadata): Promise<Metadata>
   save(tile: Tile, image: Buffer)
+  findOne(tile: Tile)
+  delete(tile: Tile)
 }
 
 declare namespace GeoPackage {}
