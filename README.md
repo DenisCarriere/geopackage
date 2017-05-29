@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/DenisCarriere/geopackage.svg?branch=master)](https://travis-ci.org/DenisCarriere/geopackage)
 [![npm version](https://badge.fury.io/js/geopackage.svg)](https://badge.fury.io/js/geopackage)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/DenisCarriere/geopackage/master/LICENSE)
+[![Coverage Status](https://coveralls.io/repos/github/DenisCarriere/geopackage/badge.svg?branch=master)](https://coveralls.io/github/DenisCarriere/geopackage?branch=master)
 
 <!-- Line Break -->
 
