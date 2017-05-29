@@ -12,10 +12,8 @@
     "projections"
   ],
   "scripts": {
-    "prepublish": "npm run lint && npm run types && npm run test",
-    "types": "tsc index.d.ts --lib es6",
-    "test": "node test.js",
-    "lint": "standard",
+    "build": "babel --plugins transform-async-to-generator script.js",
+    "test": "tap test.js",
     "docs": "documentation readme index.js --shallow --section=API"
   },
   "author": "Denis Carriere <@DenisCarriere>",
@@ -31,10 +29,11 @@
     "sqlite3-offline": "^3.1.18"
   },
   "devDependencies": {
-    "@types/node": "^7.0.18",
+    "babel-cli": "^6.24.1",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
     "documentation": "^4.0.0-beta.18",
     "fs-extra": "^3.0.1",
     "standard": "^10.0.2",
-    "tape": "^4.6.3"
+    "tap": "^10.3.2"
   }
 }

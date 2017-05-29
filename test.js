@@ -1,5 +1,5 @@
 const path = require('path')
-const test = require('tape')
+const {test} = require('tap')
 const fs = require('fs-extra')
 const GeoPackage = require('./')
 

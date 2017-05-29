@@ -69,31 +69,31 @@ module.exports = class GeoPackage {
     // Spatial Reference System
     await runSQL(this.db, 'DELETE FROM gpkg_spatial_ref_sys')
     const stmt1 = this.db.prepare('INSERT INTO gpkg_spatial_ref_sys VALUES (?, ?, ?, ?, ?, ?)')
-    await runSQL(stmt1, ['Undefined Cartesian Coordinate Reference System', -1, 'NONE', -1, 'undefined', 'Undefined Cartesian coordinate reference system'])
-    await runSQL(stmt1, ['Undefined Geographic Coordinate Reference System', 0, 'NONE', -1, 'undefined', 'Undefined geographic coordinate reference system'])
-    await runSQL(stmt1, ['World Geodetic System (WGS) 1984', 1, 'EPSG', 4326, projections.wgs84, 'World Geodetic System 1984'])
-    await runSQL(stmt1, ['Web Mercator', 2, 'EPSG', 3857, projections.webMercator, 'Pseudo Web Mercator'])
+    await runStatement(stmt1, ['Undefined Cartesian Coordinate Reference System', -1, 'NONE', -1, 'undefined', 'Undefined Cartesian coordinate reference system'])
+    await runStatement(stmt1, ['Undefined Geographic Coordinate Reference System', 0, 'NONE', -1, 'undefined', 'Undefined geographic coordinate reference system'])
+    await runStatement(stmt1, ['World Geodetic System (WGS) 1984', 1, 'EPSG', 4326, projections.wgs84, 'World Geodetic System 1984'])
+    await runStatement(stmt1, ['Web Mercator', 2, 'EPSG', 3857, projections.webMercator, 'Pseudo Web Mercator'])
 
     // Contents
     await runSQL(this.db, 'DELETE FROM gpkg_contents')
     const stmt2 = this.db.prepare('INSERT INTO gpkg_contents VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    await runSQL(stmt2, [name, 'tiles', name, description, lastChange, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3], 2])
+    await runStatement(stmt2, [name, 'tiles', name, description, lastChange, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3], 2])
 
     // Tile Matrix
     await runSQL(this.db, 'DELETE FROM gpkg_tile_matrix')
     const stmt3 = this.db.prepare('INSERT INTO gpkg_tile_matrix VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
     const zooms = mercator.range(0, maxzoom + 1)
-    for (const index in zooms) {
+    for (const index of zooms) {
       const zoom = zooms[index]
       const matrix = Math.pow(2, index)
       const resolution = mercator.resolution(zoom)
-      await runSQL(stmt3, [name, zoom, matrix, matrix, 256, 256, resolution, resolution])
+      await runStatement(stmt3, [name, zoom, matrix, matrix, 256, 256, resolution, resolution])
     }
 
     // Tile Matrix Set
     await runSQL(this.db, 'DELETE FROM gpkg_tile_matrix_set')
     const stmt4 = this.db.prepare('INSERT INTO gpkg_tile_matrix_set VALUES (?, ?, ?, ?, ?, ?)')
-    await runSQL(stmt4, [name, 2, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3]])
+    await runStatement(stmt4, [name, 2, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3]])
     return {
       name,
       description,
@@ -181,6 +181,24 @@ function getSQL (db, sql, data) {
 function runSQL (db, sql, data) {
   return new Promise((resolve, reject) => {
     db.run(sql, data, error => {
+      if (error) console.warn(error)
+      return resolve(true)
+    })
+  })
+}
+
+/**
+ * Run SQL
+ *
+ * @private
+ * @param {SQLite} db
+ * @param {string} sql
+ * @param {any[]} [data]
+ * @returns {Promise<boolean>}
+ */
+function runStatement (db, data) {
+  return new Promise((resolve, reject) => {
+    db.run(data, error => {
       if (error) console.warn(error)
       return resolve(true)
     })
