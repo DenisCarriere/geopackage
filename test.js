@@ -1,19 +1,22 @@
 const path = require('path')
 const {test} = require('tap')
 const fs = require('fs-extra')
+const d3 = require('d3-queue')
 const GeoPackage = require('./')
 
 const directory = path.join(__dirname, 'test') + path.sep
 const image = fs.readFileSync(path.join(directory, 'images', '0', '0', '0.png'))
 
-test('tables', async t => {
+test('tables', t => {
   const gpkg = new GeoPackage(directory + 'tables.gpkg')
-  t.true(await gpkg.tables())
-  fs.remove(directory + 'tables.gpkg')
-  t.end()
+  gpkg.tables().then(status => {
+    t.equal(status, true)
+    // fs.remove(directory + 'tables.gpkg')
+    t.end()
+  })
 })
 
-test('metadata', async t => {
+test('metadata', t => {
   const metadata = {
     name: 'tiles',
     description: 'OGC GeoPackage',
@@ -22,40 +25,55 @@ test('metadata', async t => {
     bounds: [-180, -85, 180, 85]
   }
   const gpkg = new GeoPackage(directory + 'metadata.gpkg')
-  t.assert(await gpkg.update(metadata))
-  fs.remove(directory + 'metadata.gpkg')
-  t.end()
+  gpkg.update(metadata).then(metadata => {
+    t.deepEqual(metadata, metadata)
+    // fs.remove(directory + 'metadata.gpkg')
+    t.end()
+  })
 })
 
-test('save', async t => {
+test('save', t => {
+  const q = d3.queue(1)
   const gpkg = new GeoPackage(directory + 'tiles.gpkg')
   for (const zoom of fs.readdirSync(path.join(directory, 'images'))) {
     for (const x of fs.readdirSync(path.join(directory, 'images', zoom))) {
       for (const y of fs.readdirSync(path.join(directory, 'images', zoom, x))) {
         const image = fs.readFileSync(path.join(directory, 'images', zoom, x, y))
         const tile = [x, path.parse(y).name, zoom]
-        await gpkg.save(tile, image)
+        q.defer(callback => {
+          gpkg.save(tile, image).then(status => callback(null))
+        })
       }
     }
   }
-  fs.remove(directory + 'tiles.gpkg')
-  t.true(true)
-  t.end()
+  q.awaitAll(errors => {
+    // fs.remove(directory + 'tiles.gpkg')
+    if (errors) t.fail()
+    t.end()
+  })
 })
 
-test('findOne', async t => {
+test('findOne', t => {
   const gpkg = new GeoPackage(directory + 'findOne.gpkg')
-  await gpkg.save([0, 0, 0], image)
-  t.assert(await gpkg.findOne([0, 0, 0]))
-  fs.remove(directory + 'findOne.gpkg')
-  t.end()
+  gpkg.save([0, 0, 0], image).then(status => {
+    t.equal(status, true)
+    gpkg.findOne([0, 0, 0]).then(image => {
+      t.assert(image)
+      // fs.remove(directory + 'findOne.gpkg')
+      t.end()
+    })
+  })
 })
 
-test('delete', async t => {
+test('delete', t => {
   const gpkg = new GeoPackage(directory + 'delete.gpkg')
-  await gpkg.save([0, 0, 0], image)
-  await gpkg.delete([0, 0, 0])
-  t.true(await gpkg.findOne([0, 0, 0]) === undefined)
-  fs.remove(directory + 'delete.gpkg')
-  t.end()
+  gpkg.save([0, 0, 0], image).then(status => {
+    gpkg.delete([0, 0, 0]).then(status => {
+      gpkg.findOne([0, 0, 0]).then(image => {
+        t.equal(image, undefined)
+        // fs.remove(directory + 'delete.gpkg')
+        t.end()
+      })
+    })
+  })
 })

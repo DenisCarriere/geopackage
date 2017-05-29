@@ -8,6 +8,8 @@
 
 [![Standard - JavaScript Style Guide](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
+> This library was designed to use the same MBTiles SQLite tile structure.
+
 ## Install
 
 ```bash
@@ -19,7 +21,14 @@ $ npm install --save geopackage
 ```javascript
 const GeoPackage = require('geopackage')
 const gpkg = new GeoPackage('geopackage.gpkg')
-gpkg.tables()
+
+// Read Image Buffer
+const image = fs.readFileSync('world.png'))
+
+// Save Image to Tile
+gpkg.save([0, 0, 0], image).then(status => {
+  console.log(status)
+})
 ```
 
 ## Features
@@ -36,10 +45,10 @@ gpkg.tables()
 
 Windows, MacOSX, Linux & Electron
 
--   4.X
--   5.X
+-   ~4.X~
+-   ~5.X~
 -   6.X
--   7.X
+-   7.X (not supported by Electron yet)
 
 ## API
 
@@ -148,4 +157,4 @@ gpkg.findOne([x, y, z])
   .then(image => console.log(image))
 ```
 
-Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;[Buffer](https://nodejs.org/api/buffer.html)>** Tile Data
+Returns **[Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)&lt;([Buffer](https://nodejs.org/api/buffer.html) \| [undefined](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined))>** Tile Data

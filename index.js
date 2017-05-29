@@ -1,3 +1,4 @@
+const d3 = require('d3-queue')
 const moment = require('moment')
 const sqlite3 = require('sqlite3-offline')
 const mercator = require('global-mercator')
@@ -30,15 +31,21 @@ module.exports = class GeoPackage {
    * gpkg.tables()
    *   .then(status => console.log(status))
    */
-  async tables () {
-    if (this._table) return true
-    await runSQL(this.db, schema.TABLE.gpkg_contents)
-    await runSQL(this.db, schema.TABLE.gpkg_spatial_ref_sys)
-    await runSQL(this.db, schema.TABLE.gpkg_tile_matrix)
-    await runSQL(this.db, schema.TABLE.gpkg_tile_matrix_set)
-    await runSQL(this.db, schema.TABLE.tiles)
-    this._table = true
-    return true
+  tables () {
+    return new Promise(resolve => {
+      if (this._table) return resolve(true)
+      const q = d3.queue(1)
+      q.defer(callback => runSQL(this.db, schema.TABLE.gpkg_contents).then(() => callback(null)))
+      q.defer(callback => runSQL(this.db, schema.TABLE.gpkg_spatial_ref_sys).then(() => callback(null)))
+      q.defer(callback => runSQL(this.db, schema.TABLE.gpkg_tile_matrix).then(() => callback(null)))
+      q.defer(callback => runSQL(this.db, schema.TABLE.gpkg_tile_matrix_set).then(() => callback(null)))
+      q.defer(callback => runSQL(this.db, schema.TABLE.tiles).then(() => callback(null)))
+      q.awaitAll(errors => {
+        if (errors) throw new Error(errors)
+        this._table = true
+        return resolve(true)
+      })
+    })
   }
 
   /**
@@ -56,52 +63,62 @@ module.exports = class GeoPackage {
    * gpkg.update(metadata)
    *   .then(metadata => console.log(metadata))
    */
-  async update (metadata = {}) {
-    if (!this._table) await this.tables()
+  update (metadata = {}) {
+    return new Promise(resolve => {
+      // Create Tables
+      this.tables().then(() => {
+        const q = d3.queue(1)
 
-    // Metadata
-    const name = metadata.name || 'tiles'
-    const description = metadata.description || 'OGC GeoPackage'
-    const boundsMeters = [-20037508.34, -20037508.34, 20037508.34, 20037508.34]
-    const lastChange = moment().toISOString()
-    const maxzoom = metadata.maxzoom || 19
+        // Metadata
+        const name = metadata.name || 'tiles'
+        const description = metadata.description || 'OGC GeoPackage'
+        const boundsMeters = [-20037508.34, -20037508.34, 20037508.34, 20037508.34]
+        const lastChange = moment().toISOString()
+        const maxzoom = metadata.maxzoom || 19
 
-    // Spatial Reference System
-    await runSQL(this.db, 'DELETE FROM gpkg_spatial_ref_sys')
-    const stmt1 = this.db.prepare('INSERT INTO gpkg_spatial_ref_sys VALUES (?, ?, ?, ?, ?, ?)')
-    await runStatement(stmt1, ['Undefined Cartesian Coordinate Reference System', -1, 'NONE', -1, 'undefined', 'Undefined Cartesian coordinate reference system'])
-    await runStatement(stmt1, ['Undefined Geographic Coordinate Reference System', 0, 'NONE', -1, 'undefined', 'Undefined geographic coordinate reference system'])
-    await runStatement(stmt1, ['World Geodetic System (WGS) 1984', 1, 'EPSG', 4326, projections.wgs84, 'World Geodetic System 1984'])
-    await runStatement(stmt1, ['Web Mercator', 2, 'EPSG', 3857, projections.webMercator, 'Pseudo Web Mercator'])
+        // Spatial Reference System
+        q.defer(callback => runSQL(this.db, 'DELETE FROM gpkg_spatial_ref_sys').then(() => callback(null)))
+        const stmt1 = this.db.prepare('INSERT INTO gpkg_spatial_ref_sys VALUES (?, ?, ?, ?, ?, ?)')
+        q.defer(callback => runStatement(stmt1, ['Undefined Cartesian Coordinate Reference System', -1, 'NONE', -1, 'undefined', 'Undefined Cartesian coordinate reference system']).then(() => callback(null)))
+        q.defer(callback => runStatement(stmt1, ['Undefined Geographic Coordinate Reference System', 0, 'NONE', -1, 'undefined', 'Undefined geographic coordinate reference system']).then(() => callback(null)))
+        q.defer(callback => runStatement(stmt1, ['World Geodetic System (WGS) 1984', 1, 'EPSG', 4326, projections.wgs84, 'World Geodetic System 1984']).then(() => callback(null)))
+        q.defer(callback => runStatement(stmt1, ['Web Mercator', 2, 'EPSG', 3857, projections.webMercator, 'Pseudo Web Mercator']).then(() => callback(null)))
 
-    // Contents
-    await runSQL(this.db, 'DELETE FROM gpkg_contents')
-    const stmt2 = this.db.prepare('INSERT INTO gpkg_contents VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
-    await runStatement(stmt2, [name, 'tiles', name, description, lastChange, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3], 2])
+        // Contents
+        q.defer(callback => runSQL(this.db, 'DELETE FROM gpkg_contents').then(() => callback(null)))
+        const stmt2 = this.db.prepare('INSERT INTO gpkg_contents VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+        q.defer(callback => runStatement(stmt2, [name, 'tiles', name, description, lastChange, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3], 2]).then(() => callback(null)))
 
-    // Tile Matrix
-    await runSQL(this.db, 'DELETE FROM gpkg_tile_matrix')
-    const stmt3 = this.db.prepare('INSERT INTO gpkg_tile_matrix VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    const zooms = mercator.range(0, maxzoom + 1)
-    for (const index of zooms) {
-      const zoom = zooms[index]
-      const matrix = Math.pow(2, index)
-      const resolution = mercator.resolution(zoom)
-      await runStatement(stmt3, [name, zoom, matrix, matrix, 256, 256, resolution, resolution])
-    }
+        // Tile Matrix
+        q.defer(callback => runSQL(this.db, 'DELETE FROM gpkg_tile_matrix').then(() => callback(null)))
+        const stmt3 = this.db.prepare('INSERT INTO gpkg_tile_matrix VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+        const zooms = mercator.range(0, maxzoom + 1)
+        for (const index of zooms) {
+          const zoom = zooms[index]
+          const matrix = Math.pow(2, index)
+          const resolution = mercator.resolution(zoom)
+          q.defer(callback => runStatement(stmt3, [name, zoom, matrix, matrix, 256, 256, resolution, resolution]).then(() => callback(null)))
+        }
 
-    // Tile Matrix Set
-    await runSQL(this.db, 'DELETE FROM gpkg_tile_matrix_set')
-    const stmt4 = this.db.prepare('INSERT INTO gpkg_tile_matrix_set VALUES (?, ?, ?, ?, ?, ?)')
-    await runStatement(stmt4, [name, 2, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3]])
-    return {
-      name,
-      description,
-      boundsMeters,
-      lastChange,
-      maxzoom
-    }
+        // Tile Matrix Set
+        q.defer(callback => runSQL(this.db, 'DELETE FROM gpkg_tile_matrix_set').then(() => callback(null)))
+        const stmt4 = this.db.prepare('INSERT INTO gpkg_tile_matrix_set VALUES (?, ?, ?, ?, ?, ?)')
+        q.defer(callback => runStatement(stmt4, [name, 2, boundsMeters[0], boundsMeters[1], boundsMeters[2], boundsMeters[3]]).then(() => callback(null)))
+
+        q.awaitAll(errors => {
+          if (errors) throw new Error(errors)
+          return resolve({
+            name,
+            description,
+            boundsMeters,
+            lastChange,
+            maxzoom
+          })
+        })
+      })
+    })
   }
+
   /**
    * Save buffer data to individual Tile
    *
@@ -112,12 +129,16 @@ module.exports = class GeoPackage {
    * gpkg.save([x, y, z], buffer)
    *   .then(status => console.log(status))
    */
-  async save (tile, image) {
-    if (!this._table) await this.tables()
-    const [x, y, z] = tile
-    const data = [x, y, z, image]
-    await runSQL(this.db, 'INSERT INTO tiles (tile_column, tile_row, zoom_level, tile_data) VALUES (?, ?, ?, ?)', data)
-    return true
+  save (tile, image) {
+    return new Promise(resolve => {
+      this.tables().then(() => {
+        const [x, y, z] = tile
+        const data = [x, y, z, image]
+        runSQL(this.db, 'INSERT INTO tiles (tile_column, tile_row, zoom_level, tile_data) VALUES (?, ?, ?, ?)', data).then(status => {
+          return resolve(status)
+        })
+      })
+    })
   }
 
   /**
@@ -129,25 +150,34 @@ module.exports = class GeoPackage {
    * gpkg.delete([x, y, z])
    *   .then(status => console.log(status))
    */
-  async delete (tile) {
-    if (!this._table) await this.tables()
-    await runSQL(this.db, 'DELETE FROM tiles WHERE tile_column=? AND tile_row=? AND zoom_level=?', tile)
-    return true
+  delete (tile) {
+    return new Promise(resolve => {
+      this.tables().then(() => {
+        runSQL(this.db, 'DELETE FROM tiles WHERE tile_column=? AND tile_row=? AND zoom_level=?', tile).then(status => {
+          return resolve(status)
+        })
+      })
+    })
   }
 
   /**
    * Finds one Tile and returns Buffer
    *
    * @param {Tile} tile Tile [x, y, z]
-   * @return {Promise<Buffer>} Tile Data
+   * @return {Promise<Buffer|undefined>} Tile Data
    * @example
    * gpkg.findOne([x, y, z])
    *   .then(image => console.log(image))
    */
-  async findOne (tile) {
-    if (!this._table) await this.tables()
-    const row = await getSQL(this.db, 'SELECT tile_data FROM tiles WHERE tile_column=? AND tile_row=? AND zoom_level=?', tile)
-    if (row) return row.tile_data
+  findOne (tile) {
+    return new Promise(resolve => {
+      this.tables().then(() => {
+        getSQL(this.db, 'SELECT tile_data FROM tiles WHERE tile_column=? AND tile_row=? AND zoom_level=?', tile).then(row => {
+          if (row) return resolve(row.tile_data)
+          resolve(undefined)
+        })
+      })
+    })
   }
 }
 
@@ -176,6 +206,7 @@ function getSQL (db, sql, data) {
  * @param {SQLite} db
  * @param {string} sql
  * @param {any[]} data
+ * @param {function} callback D3 Queue Callback
  * @returns {Promise<boolean>}
  */
 function runSQL (db, sql, data) {

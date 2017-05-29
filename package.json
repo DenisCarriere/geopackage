@@ -1,6 +1,6 @@
 {
   "name": "geopackage",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "GeoPackage NodeJS binding",
   "main": "index.js",
   "types": "index.d.js",
@@ -12,7 +12,7 @@
     "projections"
   ],
   "scripts": {
-    "build": "babel --plugins transform-async-to-generator script.js",
+    "pretest": "standard index.js",
     "test": "tap test.js",
     "docs": "documentation readme index.js --shallow --section=API"
   },
@@ -29,11 +29,14 @@
     "sqlite3-offline": "^3.1.18"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "@types/node": "^7.0.22",
+    "d3-queue": "^3.0.7",
     "documentation": "^4.0.0-beta.18",
     "fs-extra": "^3.0.1",
     "standard": "^10.0.2",
     "tap": "^10.3.2"
+  },
+  "engines": {
+    "node": ">=6.0.0"
   }
 }
