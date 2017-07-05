@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 - 2017-07-05
+
+- Add Electron support (upgraded `sqlite3-offline`)
+
 ## 1.0.0 - 2017-05-29
 
 - Stable Release
