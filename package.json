@@ -1,6 +1,6 @@
 {
   "name": "geopackage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "GeoPackage NodeJS binding",
   "main": "index.js",
   "types": "index.d.js",
@@ -26,7 +26,7 @@
   "dependencies": {
     "global-mercator": "^2.7.0",
     "moment": "^2.18.1",
-    "sqlite3-offline": "3.1.18-2"
+    "sqlite3-offline": "3.1.8-2"
   },
   "devDependencies": {
     "@types/node": "^7.0.22",
